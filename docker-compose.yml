@@ -1,0 +1,48 @@
+# Adminer
+# Requires
+# Net mariadb-public
+# Net mongodb-public
+# Label on node adminer == 1
+# DOMAIN var and domain for adminer created
+version: '3.8'
+networks:
+  mongodb-public:
+    external: true
+  mariadb-public:
+    external: true
+  traefik-public:
+    external: true
+      
+services:
+  adminer:
+    image: adminer:4.8.0-standalone
+    deploy:
+      placement:
+        constraints:
+          - node.labels.mariadb == 1
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        # http router
+        # - traefik.http.routers.adminer-http.rule=Host(`${DOMAIN}`)
+        - 
+traefik.http.routers.adminer-http.rule=Host(`adminer.ds.cloud.saia.ar`)
+        - traefik.http.routers.adminer-http.entrypoints=http
+        - traefik.http.routers.adminer-http.middlewares=https-redirect
+        #https router
+        #- traefik.http.routers.adminer-https.rule=Host(`${DOMAIN}`)
+        - 
+traefik.http.routers.adminer-https.rule=Host(`adminer.ds.cloud.saia.ar`)
+        - traefik.http.routers.adminer-https.entrypoints=https
+        - traefik.http.routers.adminer-https.tls=true
+        - traefik.http.routers.adminer-https.tls.certresolver=le
+        # services
+        - traefik.http.services.adminer.loadbalancer.server.port=8080
+    networks:
+      - traefik-public
+      - mariadb-public
+      - mongodb-public
+
+
+
